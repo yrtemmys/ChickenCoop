@@ -1,5 +1,8 @@
 let sql = require('mysql2')
 let http = require('http')
+let express = require('express')
+
+let app = express()
 
 let port = 8080
 
@@ -22,11 +25,18 @@ con.connect(function(err){
 	con.end();
 });
 
-let server = http.createServer((req, res)=>{
-	res.writeHead(200, {'Content-Type':'text/html'})
-	res.end('Hello World')
+app.use(express.static('./static/'))
+
+app.set('view engine', 'html')
+app.set('views', './plublic')
+
+
+
+app.get('/',(req, res)=>{
+	res.sendFile('./static/index.html')
 })
 
-server.listen(port, ()=>{
+
+app.listen(port, ()=>{
 	console.log('Server is listening on port number: $(port)');
 })
