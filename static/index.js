@@ -7,6 +7,6 @@ function dothething(){
 }
 
 async function talkserver(){
-	const result = fetch("http://localhost:8080/chicken")
-	console.log(result.response)
+	const result = await fetch("http://localhost:8080/chicken")
+	console.log(result)
 }

@@ -8,4 +8,5 @@ export async function select(req, res){
 		result[i]=e
 	})
 	res.send(result)
+	//return result
 }
