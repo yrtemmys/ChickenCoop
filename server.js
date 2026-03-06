@@ -1,29 +1,16 @@
-let sql = require('mysql2')
-let http = require('http')
-let express = require('express')
+import connection from './backend/db_connection.js'
+import sql from 'mysql2/promise'
+import http from'http'
+import express from 'express'
+import { select } from './backend/db_select.js'
 
 let app = express()
 
 let port = 8080
 
-let con = sql.createConnection({
-	host: "localhost",
-	user: "code",
-	password: "pw",
-	database: "chicken_coop"
-});
+const [rows, fields] = await connection.execute("select * from chicken;")
+console.log(rows);
 
-con.connect(function(err){
-	if(err) throw err;
-	console.log("conneciton yay");
-
-	con.query("select * from chicken;",(err, results,fields)=>{
-		if(err) throw err;
-		console.log(results);
-	})
-
-//	con.end();
-});
 
 app.use(express.static('./static/'))
 
@@ -36,39 +23,16 @@ app.get('/',(req, res)=>{
 	res.sendFile('./static/index.html')
 })
 
-app.get('/chicken', (req, res)=>{
-con.connect(function(err){
-	if(err) throw err;
-	console.log("conneciton yay");
-
-	con.query("select * from chicken;",(err, results,fields)=>{
-		if(err) throw err;
-		res.send(results);
-	})
-
-	con.end();
-});
 /*
-
-	let c_name = "margaret";
-	res.send({
-		"name":c_name
-		"chicken_id": 1,
-		"name": null,
-		"feather_color": null,
-		"size": 1,
-		"from_egg": 1,
-		"coop_id": null,
-		"favorite_food_id": null,
-		"affection_meter": null,
-		"sex": null,
-		"alive_state": null
-	}
-  */
- // },
+app.get('/chicken', (req, res)=>{
+	const [rows, fields] = await connection.execute("select * from chicken;")
+	res.send(rows)
 })
+*/
+
+app.get('/chicken', select)
 
 app.listen(port, ()=>{
-	console.log('Server is listening on port number: $(port)');
+	console.log('Server is listening on port number: $(port)',port);
 })
-
+// await connection.end()
