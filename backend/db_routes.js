@@ -8,7 +8,7 @@ export async function chicken(req, res){
 export async function dynamic_select(req, res){
 	let table = req.params.table
 
-	if (table = 'chicken') table = 'chicken_proper'
+	//if (table = 'chicken') table = 'chicken_proper'
 	const result = db.exec('select * from '+table+';')
 	
 	res.send(result)

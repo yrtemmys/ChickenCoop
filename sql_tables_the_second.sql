@@ -126,7 +126,7 @@ insert into egg (color_id, mother_chicken_id, ts_laid) values (0, 1, '2026-03-13
 
 
 create view chicken_proper as
-	select ch.name as name, co.name as color, f.name as fav_food, f1.name last_food, ch.ts_last_fed, cs.name as state, eg.name as mother, ge.name as gender 
+	select ch.chicken_id, ch.name as name, co.name as color, f.name as fav_food, f1.name last_food, ch.ts_last_fed, cs.name as state, eg.name as mother, ge.name as gender 
 	from chicken       as ch
 	left join color         as co on ch.color_id         = co.color_id
 	left join food          as f  on ch.favorite_food_id = f.food_id
@@ -136,3 +136,23 @@ create view chicken_proper as
 	left join chicken       as eg on e.mother_chicken_id = eg.chicken_id
 	left join gender        as ge on ch.gender_id        = ge.name
 	;
+
+create view chicken_ranking as
+	select ch.chicken_id, ch.name, count(eg.egg_id) as eggs_laid 
+	from chicken as ch
+	join egg as eg on eg.mother_chicken_id = ch.chicken_id
+	group by chicken_id
+	having eggs_laid > 0
+	order by eggs_laid desc;
+
+create view chicken_prices as
+	select ch.chicken_id, ch.name, cp.color, co.price_factor, cp.gender, ge.price_factor, cp.state, cs.price_factor, 
+		( co.price_factor * ge.price_factor, cs.price_factor * cr.eggs_laid * (
+			select value from chicken_base_price as cbp where cbp.since_date < datetime() 
+		) ) as price_total
+	from chicken as ch
+	join chicken_proper as cp on ch.chicken_id=cp.chicken_id
+	left join chicken_ranking as cr on ch.chicken_id = cr.chicken_id
+        left join color as co on ch.color_id = co.color_id	
+	left join gender as ge on ch.gender_id = ge.gender_id
+	left join chicken_state as cs on ch.state_id = cs.state_id

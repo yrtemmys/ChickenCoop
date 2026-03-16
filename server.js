@@ -16,7 +16,7 @@ import { chicken, dynamic_select } from './backend/db_routes.js'
 
 let app = express()
 
-let port = 8080
+let port = 7821
 
 //const [rows, fields] = await connection.execute("select * from chicken;")
 //console.log(rows);
