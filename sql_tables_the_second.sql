@@ -30,7 +30,7 @@ create table letters (
 	type integer
 );
 insert into letters values ('a', 1),('e', 1),('i',1),('o',1),('u',1),('y',1);
-insert into letters values ('t',2),('d',2),('g',2),('x',2),('c',2),('b',2),('p',2),('k',2),('h',2),('ch',2);
+insert into letters values ('t',2),('d',2),('g',2),('ch',2),('b',2),('p',2),('k',2),('h',2);
 insert into letters values ('w',3),('r',3),('s',3),('f',3),('z',3),('v',3),('sh',3),('l',3),('n',3),('m',3);
 
 create table syllable_patterns (
@@ -42,7 +42,7 @@ create table syllable_patterns (
 -- am-, amk, ak-, ka-, kam, kma, ma-, mak
 insert into syllable_patterns values
 (1,2,0),(1,3,2),(1,3,0),
-(2,1,0),(2,1,3),(2,3,1),
+(2,1,0),(2,1,3),
 (3,1,0),(3,1,2);
 
 
@@ -180,6 +180,14 @@ create view chicken_proper as
 	left join egg           as e  on ch.origin_egg_id    = e.egg_id
 	left join gender        as ge on ch.gender_id        = ge.gender_id
 	left join chicken       as eg on e.mother_chicken_id = eg.chicken_id
+	;
+
+create view egg_proper as
+	select eg.egg_id, co.name, ch.name, eg.ts_laid 
+	from egg eg
+	left join color co on eg.color_id = co.color_id
+	left join chicken ch on eg.mother_chicken_id = ch.chicken_id
+	where eg.ts_hatched is null
 	;
 
 create view chicken_ranking as
