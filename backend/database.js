@@ -40,6 +40,7 @@ create trigger hatching after update on egg
 end;
 `)
 
+
 db.run(`
 	pragma foreign_key = off;
 	update egg set ts_hatched = datetime() where egg_id = 1;
@@ -47,17 +48,21 @@ db.run(`
 `)
 
 // cock fight trigger. lets leave that commented out..
-/*
+
 db.run(`
-	create trigger cock_fiht after insert on chicken
+	create trigger cock_fight after insert on chicken
 	when (select count(*) from chicken where gender_id=1 and state_id=1)>3
 	begin
-		update chicken set state_id=2 where chicken_id = (
+		update chicken set state_id=3 where chicken_id = (
 			select chicken_id from chicken where gender_id=1 and state_id = 1 order by random() limit 1
 		);
 	end;
 `)
-*/
+
+
+// 0000-00-00 00:00:00
+
+
 
 /*
 db.exec("with syls as ("+"select (l1.letter || l2.letter ||  l3.letter) "+

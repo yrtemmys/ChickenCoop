@@ -52,3 +52,21 @@ export async function feed_chicken(req, res){
 		`)
 	res.send()
 }
+export async function dynamic_select_sort(req, res){
+	let table = req.params.table
+	let column = req.params.row
+	let order = req.params.order
+
+	//if (table = 'chicken') table = 'chicken_proper'
+	const result = db.exec('select * from '+table+' order by '+column+' '+order+';')
+	
+	res.send(result)
+}
+export async function test(req, res){
+res.send(db.exec(`
+	select ch.name, count(eg.egg_id), substr(eg.ts_laid, 1,16)
+	from egg eg join chicken ch on eg.mother_chicken_id = ch.chicken_id
+	group by eg.mother_chicken_id, substr(eg.ts_laid, 1,16)
+`))
+	
+}

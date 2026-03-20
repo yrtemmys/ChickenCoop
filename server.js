@@ -8,7 +8,7 @@ import express from 'express'
 
 import db from './backend/database.js'
 
-import { chicken, dynamic_select, new_egg, sell_chicken, hatch_egg, feed_chicken } from './backend/db_routes.js'
+import { chicken, test, dynamic_select, new_egg, sell_chicken, hatch_egg, feed_chicken, dynamic_select_sort } from './backend/db_routes.js'
 
 //const result = db.exec("select * from chicken");
 //console.log(result[0])
@@ -41,7 +41,9 @@ app.get('/chicken', (req, res)=>{
 */
 
 app.get('/chicken', chicken)
+app.get('/test', test)
 app.all('/select/:table', dynamic_select)
+app.all('/select/:table/:row/:order', dynamic_select_sort)
 
 app.get('/lay/:chicken_id', new_egg)
 app.get('/sell/:chicken_id', sell_chicken)
