@@ -84,7 +84,7 @@ create table chicken(
 	color_id integer references color(color_id),
 	last_food_id integer references food(food_id),
 	state_id integer references chicken_state(state_id),
-	favorite_food_id integer references chicken_state(state_id),
+	favorite_food_id integer references food(food_id),
 	origin_egg_id integer references egg(egg_id),
 	gender_id integer references gender(gender_id),
 	ts_last_fed varchar(19),
@@ -209,10 +209,15 @@ create view chicken_ranks_avg as
 	select chicken_id, name, avg(amount) as amount from chicken_ranks_minutely group by chicken_id
 	;
 
+	--select cbp.value from chicken_base_price as cbp where cbp.since_date = (select max(cbp.since_date) from chicken_base_price as cbp)
+
+
+	--select value from chicken_base_price as cbp where cbp.since_date < datetime() 
+
 create view chicken_prices as
 	select ch.chicken_id, ch.name, cp.color, co.price_factor, cp.gender, ge.price_factor, cp.state, cs.price_factor, cr.amount,
-		( co.price_factor * ge.price_factor * cs.price_factor * ((cr.amount/5)+1) * (
-			select value from chicken_base_price as cbp where cbp.since_date < datetime() 
+		( co.price_factor * ge.price_factor * cs.price_factor * ifnull(((cr.amount/5)+1),1) * (
+	select cbp.value from chicken_base_price as cbp where cbp.since_date = (select max(cbp.since_date) from chicken_base_price as cbp)
 		) / (100 * 100 * 100)) as price_total
 	from chicken as ch
 	join chicken_proper as cp on ch.chicken_id=cp.chicken_id
@@ -257,13 +262,13 @@ select upper(substr(name,1,1))||substr(name,2) from (
 );
 
 
-
-
-
-	create trigger t_sale after update of state_id on chicken 
+-- Triggers
+create trigger t_sale after update of state_id on chicken 
 	begin 
 	insert into chicken_sale (chicken_id, selling_price, date) values (new.chicken_id, 20, datetime()); 
 	end;
+
+
 
 create trigger hatching after update on egg
 	begin
@@ -285,16 +290,13 @@ create trigger hatching after update on egg
 end;
 
 
-	pragma foreign_key = off;
-	update egg set ts_hatched = datetime() where egg_id = 1;
-	--pragma foreign_key = on;
 
-// cock fight trigger. lets leave that commented out..
 
-	create trigger cock_fight after insert on chicken
+create trigger cock_fight after insert on chicken
 	when (select count(*) from chicken where gender_id=1 and state_id=1)>3
 	begin
 		update chicken set state_id=3 where chicken_id = (
 			select chicken_id from chicken where gender_id=1 and state_id = 1 order by random() limit 1
 		);
 	end;
+

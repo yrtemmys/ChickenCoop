@@ -84,7 +84,7 @@ create table chicken(
 	color_id integer references color(color_id),
 	last_food_id integer references food(food_id),
 	state_id integer references chicken_state(state_id),
-	favorite_food_id integer references chicken_state(state_id),
+	favorite_food_id integer references food(food_id),
 	origin_egg_id integer references egg(egg_id),
 	gender_id integer references gender(gender_id),
 	ts_last_fed varchar(19),
@@ -209,10 +209,15 @@ create view chicken_ranks_avg as
 	select chicken_id, name, avg(amount) as amount from chicken_ranks_minutely group by chicken_id
 	;
 
+	--select cbp.value from chicken_base_price as cbp where cbp.since_date = (select max(cbp.since_date) from chicken_base_price as cbp)
+
+
+	--select value from chicken_base_price as cbp where cbp.since_date < datetime() 
+
 create view chicken_prices as
 	select ch.chicken_id, ch.name, cp.color, co.price_factor, cp.gender, ge.price_factor, cp.state, cs.price_factor, cr.amount,
-		( co.price_factor * ge.price_factor * cs.price_factor * ((cr.amount/5)+1) * (
-			select value from chicken_base_price as cbp where cbp.since_date < datetime() 
+		( co.price_factor * ge.price_factor * cs.price_factor * ifnull(((cr.amount/5)+1),1) * (
+	select cbp.value from chicken_base_price as cbp where cbp.since_date = (select max(cbp.since_date) from chicken_base_price as cbp)
 		) / (100 * 100 * 100)) as price_total
 	from chicken as ch
 	join chicken_proper as cp on ch.chicken_id=cp.chicken_id
@@ -247,7 +252,7 @@ insert into chicken(color_id, favorite_food_id, state_id, origin_egg_id, gender_
 	)
 	;
 
---PRAGMA foreign_keys = ON;
+PRAGMA foreign_keys = ON;
 
 
 select upper(substr(name,1,1))||substr(name,2) from (
