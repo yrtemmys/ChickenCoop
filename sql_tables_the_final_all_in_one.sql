@@ -198,19 +198,29 @@ create view chicken_ranking as
 	having eggs_laid > 0
 	order by eggs_laid desc;
 
+create view chicken_ranks_minutely as
+	select ch.chicken_id, ch.name as name, count(eg.egg_id) as amount, substr(eg.ts_laid, 1,16) as minute
+	from egg eg join chicken ch on eg.mother_chicken_id = ch.chicken_id
+	group by eg.mother_chicken_id, substr(eg.ts_laid, 1,16)
+	having amount > 0
+	order by minute, amount desc
+	;
+create view chicken_ranks_avg as
+	select chicken_id, name, avg(amount) as amount from chicken_ranks_minutely group by chicken_id
+	;
+
 create view chicken_prices as
-	select ch.chicken_id, ch.name, cp.color, co.price_factor, cp.gender, ge.price_factor, cp.state, cs.price_factor, 
-		( co.price_factor * ge.price_factor * cs.price_factor * ((cr.eggs_laid/5)+1) * (
+	select ch.chicken_id, ch.name, cp.color, co.price_factor, cp.gender, ge.price_factor, cp.state, cs.price_factor, cr.amount,
+		( co.price_factor * ge.price_factor * cs.price_factor * ((cr.amount/5)+1) * (
 			select value from chicken_base_price as cbp where cbp.since_date < datetime() 
 		) / (100 * 100 * 100)) as price_total
 	from chicken as ch
 	join chicken_proper as cp on ch.chicken_id=cp.chicken_id
-	left join chicken_ranking as cr on ch.chicken_id = cr.chicken_id
+	left join chicken_ranks_avg as cr on ch.chicken_id = cr.chicken_id
         left join color as co on ch.color_id = co.color_id	
 	left join gender as ge on ch.gender_id = ge.gender_id
 	left join chicken_state as cs on ch.state_id = cs.state_id
 	;
-
 
 
 PRAGMA foreign_keys = OFF;
@@ -240,16 +250,17 @@ insert into chicken(color_id, favorite_food_id, state_id, origin_egg_id, gender_
 --PRAGMA foreign_keys = ON;
 
 
---select upper(substr(name,1,1))||substr(name,2) from (
---	select group_concat(syl,'') as name from (
---		select syl from syllables order by random() limit (abs(random())%3)+1
---	)
---);
+select upper(substr(name,1,1))||substr(name,2) from (
+	select group_concat(syl,'') as name from (
+		select syl from syllables order by random() limit (abs(random())%3)+1
+	)
+);
 
 
 
 
-create trigger t_sale after update of state_id on chicken 
+
+	create trigger t_sale after update of state_id on chicken 
 	begin 
 	insert into chicken_sale (chicken_id, selling_price, date) values (new.chicken_id, 20, datetime()); 
 	end;
@@ -273,17 +284,17 @@ create trigger hatching after update on egg
 		;
 end;
 
-pragma foreign_key = off;
-update egg set ts_hatched = datetime() where egg_id = 1;
---pragma foreign_key = on;
 
--- cock fight trigger. lets leave that commented out..
+	pragma foreign_key = off;
+	update egg set ts_hatched = datetime() where egg_id = 1;
+	--pragma foreign_key = on;
 
---create trigger cock_fiht after insert on chicken
---	when (select count(*) from chicken where gender_id=1 and state_id=1)>3
---	begin
---		update chicken set state_id=2 where chicken_id = (
---			select chicken_id from chicken where gender_id=1 and state_id = 1 order by random() limit 1
---		);
---	end;
+// cock fight trigger. lets leave that commented out..
 
+	create trigger cock_fight after insert on chicken
+	when (select count(*) from chicken where gender_id=1 and state_id=1)>3
+	begin
+		update chicken set state_id=3 where chicken_id = (
+			select chicken_id from chicken where gender_id=1 and state_id = 1 order by random() limit 1
+		);
+	end;
